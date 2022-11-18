@@ -1,0 +1,12 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="TestCustomSettingsProvider.Properties" GeneratedClassName="Settings">
+  <Profiles />
+  <Settings>
+    <Setting Name="WindowLocation" Provider="CustomSettingsProvider" Roaming="true" Type="System.Drawing.Point" Scope="User">
+      <Value Profile="(Default)">30, 30</Value>
+    </Setting>
+    <Setting Name="WindowSize" Provider="CustomSettingsProvider" Roaming="true" Type="System.Drawing.Size" Scope="User">
+      <Value Profile="(Default)">1000, 700</Value>
+    </Setting>
+  </Settings>
+</SettingsFile>
