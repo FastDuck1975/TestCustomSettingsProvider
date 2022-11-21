@@ -54,6 +54,15 @@ namespace TestCustomSettingsProvider
             {
                 Console.WriteLine("Number: " + branch.ID + " Name: " + branch.Name + " Address: " + branch.StreetName + " " + branch.BuildingNumber);
             }
+            List<Branch> tmp = BranchInfo.Default.DKBranches;
+            if (tmp == null)
+            {
+                Console.WriteLine("Branch settings null");
+            }
+            else
+            {
+                Console.Write("Branch settings is not null");
+            }
             BranchInfo.Default.DKBranches = branches;
             BranchInfo.Default.Save();
         }

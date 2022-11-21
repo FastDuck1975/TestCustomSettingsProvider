@@ -26,7 +26,7 @@ namespace TestCustomSettingsProvider.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Configuration.SettingsProviderAttribute(typeof(CustomSettingsProvider))]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("041")]
+        [global::System.Configuration.DefaultSettingValueAttribute(null)]
         [global::System.Configuration.SettingsManageabilityAttribute(global::System.Configuration.SettingsManageability.Roaming)]
         public global::System.Collections.Generic.List<Branch> DKBranches {
             get {
