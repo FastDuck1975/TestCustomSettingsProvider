@@ -11,15 +11,15 @@ namespace TestCustomSettingsProvider
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            Location = Settings.Default.WindowLocation;
-            Size = Settings.Default.WindowSize;
+//            Location = Settings.Default.WindowLocation;
+//            Size = Settings.Default.WindowSize;
         }
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
-            Settings.Default.WindowLocation = Location;
+/*            Settings.Default.WindowLocation = Location;
             Settings.Default.WindowSize = WindowState == FormWindowState.Normal ? Size : RestoreBounds.Size;
-            Settings.Default.Save();
+            Settings.Default.Save(); */
         }
 
         private void button1_Click(object sender, EventArgs e)
@@ -54,7 +54,7 @@ namespace TestCustomSettingsProvider
             {
                 Console.WriteLine("Number: " + branch.ID + " Name: " + branch.Name + " Address: " + branch.StreetName + " " + branch.BuildingNumber);
             }
-            List<Branch> tmp = BranchInfo.Default.DKBranches;
+/*            List<Branch> tmp = BranchInfo.Default.DKBranches;
             if (tmp == null)
             {
                 Console.WriteLine("Branch settings null");
@@ -62,7 +62,7 @@ namespace TestCustomSettingsProvider
             else
             {
                 Console.Write("Branch settings is not null");
-            }
+            } */
             BranchInfo.Default.DKBranches = branches;
             BranchInfo.Default.Save();
         }
