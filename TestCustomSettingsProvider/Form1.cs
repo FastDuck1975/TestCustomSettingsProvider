@@ -13,6 +13,7 @@ namespace TestCustomSettingsProvider
         {
             Location = Settings.Default.WindowLocation;
             Size = Settings.Default.WindowSize;
+            this.Text = Settings.Default.MainFormName;
         }
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)

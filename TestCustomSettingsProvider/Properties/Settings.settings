@@ -31,5 +31,8 @@
   &lt;/Branch&gt;
 &lt;/ArrayOfBranch&gt;</Value>
     </Setting>
+    <Setting Name="MainFormName" Provider="CustomSettingsProvider" Roaming="true" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Serialize String</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

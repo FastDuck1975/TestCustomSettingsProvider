@@ -5,202 +5,193 @@ using System.Xml;
 
 namespace TestCustomSettingsProvider
 {
-    internal class CustomSettingsProvider : SettingsProvider
+    internal class CustomSettingsProvider : SettingsProvider, IApplicationSettingsProvider
     {
-        //Root node in the Settings file, can you change that at runtime?
-        const string SETTINGSROOT = "Settings";
+        const string settingsRoot = "Settings";
+        const string localSetttingsNodeName = "localSettings";
+        const string globalSettingsNodeName = "globalSettings";
+        const string className = "CustomSettingsProvider";
+        XmlDocument xmlDocument;
 
-        public override void Initialize(string name, NameValueCollection config)
-        {
-            base.Initialize(this.ApplicationName, config);
-        }
-
-        public override string ApplicationName
+        private string FilePath
         {
             get
             {
-                if (Application.ProductName.Trim().Length > 0)
+                return Path.Combine(Path.GetDirectoryName(Application.ExecutablePath), string.Format("{0}.settings", ApplicationName));
+            }
+        }
+
+        private XmlNode LocalSettingsNode
+        {
+            get
+            {
+                XmlNode settingsNode = GetSettingsNode(localSetttingsNodeName);
+                XmlNode machineNode = settingsNode.SelectSingleNode(Environment.MachineName.ToLowerInvariant());
+                if(machineNode == null)
                 {
-                    return Application.ProductName;
+                    machineNode = XmlSettings.CreateElement(Environment.MachineName.ToLowerInvariant());
+                    settingsNode.AppendChild(machineNode);
                 }
-                else
-                {
-                    FileInfo fi = new(Application.ExecutablePath);
-                    return fi.Name[..^fi.Extension.Length];
-                }
-            }
-            set
-            {
-                // Nothing to set or can we here tell witch .settings file we need so we split the settings for easier read?
+                return machineNode;
             }
         }
 
-/*        public override string Name
+        private XmlNode GlobalSettingsNode
         {
             get
             {
-                return "CustomSettingsProvider";
-            }
-        } */
-
-        public static string GetAppSettingsPath()
-        {
-            return AppContext.BaseDirectory;
-        }
-
-        public string GetAppSettingsFilename()
-        {
-            return ApplicationName + ".settings";
-        }
-
-        public override void SetPropertyValues(SettingsContext settingsContext, SettingsPropertyValueCollection settingsPropertyValueCollection)
-        {
-            foreach (SettingsPropertyValue settingsPropertyValue in settingsPropertyValueCollection)
-            {
-                SetValue(settingsPropertyValue);
-            }
-            try
-            {
-                SettingsXml.Save(Path.Combine(GetAppSettingsPath(), GetAppSettingsFilename()));
-            }
-            catch (Exception)
-            {
-                // Should we handle this? Can't save
+                return GetSettingsNode(globalSettingsNodeName);
             }
         }
-
-        public override SettingsPropertyValueCollection GetPropertyValues(SettingsContext settingsContext, SettingsPropertyCollection settingsPropertyCollection)
-        {
-            SettingsPropertyValueCollection settingsPropertyValueCollection = new();
-            foreach (SettingsProperty settingsProperty in settingsPropertyCollection)
-            {
-                SettingsPropertyValue value = new(settingsProperty)
-                {
-                    IsDirty = false,
-                    SerializedValue = GetValue(settingsProperty)
-                };
-                settingsPropertyValueCollection.Add(value);
-            }
-            return settingsPropertyValueCollection;
-        }
-
-        private XmlDocument? xmlDocument;
-
-        private XmlDocument SettingsXml
+        
+        private XmlNode RootNode
         {
             get
             {
-                if (xmlDocument == null)
+                return XmlSettings.SelectSingleNode(settingsRoot);
+            }
+        }
+
+        private XmlDocument XmlSettings
+        {
+            get
+            {
+                if(xmlDocument == null)
                 {
-                    xmlDocument = new XmlDocument();
                     try
                     {
-                        xmlDocument.Load(Path.Combine(GetAppSettingsPath(), GetAppSettingsFilename()));
+                        xmlDocument = new();
+                        xmlDocument.Load(FilePath);
                     }
                     catch (Exception)
                     {
-                        xmlDocument.AppendChild(xmlDocument.CreateXmlDeclaration("1.0", "utf-8", string.Empty));
-                        xmlDocument.AppendChild(xmlDocument.CreateNode(XmlNodeType.Element, SETTINGSROOT, ""));
+
                     }
                 }
                 return xmlDocument;
             }
         }
 
-        private string? GetValue(SettingsProperty settingsProperty)
+        public override string ApplicationName
         {
-            string? retrunValue;
+            get
+            {
+                return Path.GetFileNameWithoutExtension(Application.ExecutablePath);
+            }
+            set
+            {
+
+            }
+        }
+
+        public override string Name
+        {
+            get
+            {
+                return className;
+            }
+        }
+
+        public override void Initialize(string name, NameValueCollection config)
+        {
+            base.Initialize(Name, config);
+        }
+
+        public override void SetPropertyValues(SettingsContext settingsContext, SettingsPropertyValueCollection settingsPropertyValueCollection)
+        {
+            foreach(SettingsPropertyValue settingsPropertyValue in settingsPropertyValueCollection)
+            {
+                SetValue(settingsPropertyValue);
+            }
             try
             {
-                if (IsRoaming(settingsProperty))
-                {
-                    retrunValue = SettingsXml.SelectSingleNode(SETTINGSROOT + "/" + settingsProperty.Name)?.InnerText;
-                }
-                else
-                {
-                    retrunValue = SettingsXml.SelectSingleNode(SETTINGSROOT + "/" + Environment.MachineName + "/" + settingsProperty.Name)?.InnerText;
-                }
+                XmlSettings.Save(FilePath);
             }
             catch (Exception)
             {
-                if ((settingsProperty.DefaultValue != null))
-                {
-                    retrunValue = settingsProperty.DefaultValue.ToString();
-                }
-                else
-                {
-                    retrunValue = "";
-                }
+                //Do nothing
             }
+        }
 
-            return retrunValue;
+        public override SettingsPropertyValueCollection GetPropertyValues(SettingsContext settingsContext, SettingsPropertyCollection settingsPropertyCollection)
+        {
+            SettingsPropertyValueCollection settingsPropertyValueCollection = new();
+            foreach(SettingsProperty settingsProperty in settingsPropertyCollection)
+            {
+                settingsPropertyValueCollection.Add(new(settingsProperty)
+                {
+                    SerializedValue = GetValue(settingsProperty)
+                });
+            }
+            return settingsPropertyValueCollection;
         }
 
         private void SetValue(SettingsPropertyValue settingsPropertyValue)
         {
-            XmlElement? MachineNode;
-            XmlElement? SettingNode;
-            try
+            XmlNode targetNode = IsGlobal(settingsPropertyValue.Property) ? GlobalSettingsNode : LocalSettingsNode;
+            XmlNode settingsNode = targetNode.SelectSingleNode(string.Format("setting[@name='{0}]", settingsPropertyValue.Name));
+            if (settingsNode != null)
             {
-                if (IsRoaming(settingsPropertyValue.Property))
-                {
-                    SettingNode = SettingsXml.SelectSingleNode(SETTINGSROOT + "/" + settingsPropertyValue.Name) as XmlElement;
-                }
-                else
-                {
-                    SettingNode = SettingsXml.SelectSingleNode(SETTINGSROOT + "/" + Environment.MachineName + "/" + settingsPropertyValue.Name) as XmlElement;
-                }
-            }
-            catch (Exception)
-            {
-                SettingNode = null;
-            }
-            if ((SettingNode != null))
-            {
-                SettingNode.InnerText = settingsPropertyValue.SerializedValue.ToString()!;
+                settingsNode.InnerText = settingsPropertyValue.SerializedValue.ToString();
             }
             else
             {
-                if (IsRoaming(settingsPropertyValue.Property))
-                {
-                    SettingNode = SettingsXml.CreateElement(settingsPropertyValue.Name);
-                    SettingNode.InnerText = settingsPropertyValue.SerializedValue.ToString()!;
-                    SettingsXml.SelectSingleNode(SETTINGSROOT)?.AppendChild(SettingNode);
-                }
-                else
-                {
-                    try
-                    {
-                        MachineNode = SettingsXml.SelectSingleNode(SETTINGSROOT + "/" + Environment.MachineName) as XmlElement;
-                    }
-                    catch (Exception)
-                    {
-                        MachineNode = SettingsXml.CreateElement(Environment.MachineName);
-                        SettingsXml.SelectSingleNode(SETTINGSROOT)?.AppendChild(MachineNode);
-                    }
-                    if (MachineNode == null)
-                    {
-                        MachineNode = SettingsXml.CreateElement(Environment.MachineName);
-                        SettingsXml.SelectSingleNode(SETTINGSROOT)?.AppendChild(MachineNode);
-                    }
-                    SettingNode = SettingsXml.CreateElement(settingsPropertyValue.Name);
-                    SettingNode.InnerText = settingsPropertyValue.SerializedValue.ToString()!;
-                    MachineNode.AppendChild(SettingNode);
-                }
+                settingsNode = XmlSettings.CreateElement("setting");
+                XmlAttribute xmlAttribute = XmlSettings.CreateAttribute("name");
+                settingsNode.Attributes.Append(xmlAttribute);
+                settingsNode.InnerText = settingsPropertyValue.SerializedValue.ToString();
+                targetNode.AppendChild(settingsNode);
             }
         }
 
-        private static bool IsRoaming(SettingsProperty settingsProperty)
+        private string GetValue(SettingsProperty settingsProperty)
         {
-            foreach (DictionaryEntry dictionaryEntry in settingsProperty.Attributes)
+            XmlNode targetNode = IsGlobal(settingsProperty) ? GlobalSettingsNode : LocalSettingsNode;
+            XmlNode settingsNode = targetNode.SelectSingleNode(string.Format("setting[@name='{0}']", settingsProperty.Name));
+            if (settingsNode != null)
             {
-                Attribute? attribute = dictionaryEntry.Value as Attribute;
-                if (attribute is SettingsManageabilityAttribute)
+                return settingsProperty.DefaultValue != null ? settingsProperty.DefaultValue.ToString() : string.Empty;
+            }
+            return settingsNode.InnerText;
+        }
+
+        private bool IsGlobal(SettingsProperty settingsProperty)
+        {
+            foreach(DictionaryEntry dictionaryEntry in settingsProperty.Attributes)
+            {
+                if(dictionaryEntry.Value as Attribute is SettingsManageabilityAttribute)
                 {
                     return true;
                 }
             }
             return false;
+        }
+
+        private XmlNode GetSettingsNode(string name)
+        {
+            XmlNode settingsNode = RootNode.SelectSingleNode(name);
+            if (settingsNode == null)
+            {
+                settingsNode = XmlSettings.CreateElement(name);
+                RootNode.AppendChild(settingsNode);
+            }
+            return settingsNode;
+        }
+
+        public SettingsPropertyValue GetPreviousVersion(SettingsContext settingsContext, SettingsProperty settingsProperty)
+        {
+            return new(settingsProperty);
+        }
+
+        public void Reset(SettingsContext settingsContext)
+        {
+            LocalSettingsNode.RemoveAll();
+            GlobalSettingsNode.RemoveAll();
+            XmlSettings.Save(FilePath);
+        }
+
+        public void Upgrade(SettingsContext settingsContext, SettingsPropertyCollection settingsPropertyCollection)
+        {
         }
     }
 }

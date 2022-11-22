@@ -84,5 +84,19 @@ namespace TestCustomSettingsProvider.Properties {
                 this["DKBranches"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Configuration.SettingsProviderAttribute(typeof(CustomSettingsProvider))]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("Serialize String")]
+        [global::System.Configuration.SettingsManageabilityAttribute(global::System.Configuration.SettingsManageability.Roaming)]
+        public string MainFormName {
+            get {
+                return ((string)(this["MainFormName"]));
+            }
+            set {
+                this["MainFormName"] = value;
+            }
+        }
     }
 }
