@@ -7,17 +7,17 @@ namespace TestCustomSettingsProvider
 {
     internal class CustomSettingsProvider : SettingsProvider, IApplicationSettingsProvider
     {
-        const string settingsRoot = "Settings";
-        const string localSetttingsNodeName = "localSettings";
-        const string globalSettingsNodeName = "globalSettings";
-        const string className = "CustomSettingsProvider";
-        XmlDocument xmlDocument;
+        private const string rootNodeName = "OIOUBL-Generator_Settings";
+        private const string localSettingsNodeName = "LocalSettings";
+        private const string globalSettingsNodeName = "GlobalSettings";
+        private const string className = "CustomSettingsProvider";
+        private XmlDocument? xmlDocument;
 
         private string FilePath
         {
             get
             {
-                return Path.Combine(Path.GetDirectoryName(Application.ExecutablePath), string.Format("{0}.settings", ApplicationName));
+                return Path.Combine(AppContext.BaseDirectory, string.Format("{0}.settings", ApplicationName));
             }
         }
 
@@ -25,11 +25,11 @@ namespace TestCustomSettingsProvider
         {
             get
             {
-                XmlNode settingsNode = GetSettingsNode(localSetttingsNodeName);
-                XmlNode machineNode = settingsNode.SelectSingleNode(Environment.MachineName.ToLowerInvariant());
-                if(machineNode == null)
+                XmlNode settingsNode = GetSettingsNode(localSettingsNodeName);
+                XmlNode? machineNode = settingsNode.SelectSingleNode(Environment.MachineName.ToLowerInvariant());
+                if (machineNode == null)
                 {
-                    machineNode = XmlSettings.CreateElement(Environment.MachineName.ToLowerInvariant());
+                    machineNode = SettingsDocument.CreateElement(Environment.MachineName.ToLowerInvariant());
                     settingsNode.AppendChild(machineNode);
                 }
                 return machineNode;
@@ -43,20 +43,20 @@ namespace TestCustomSettingsProvider
                 return GetSettingsNode(globalSettingsNodeName);
             }
         }
-        
+
         private XmlNode RootNode
         {
             get
             {
-                return XmlSettings.SelectSingleNode(settingsRoot);
+                return SettingsDocument.SelectSingleNode(rootNodeName)!;
             }
         }
 
-        private XmlDocument XmlSettings
+        private XmlDocument SettingsDocument
         {
             get
             {
-                if(xmlDocument == null)
+                if (xmlDocument == null)
                 {
                     try
                     {
@@ -65,8 +65,12 @@ namespace TestCustomSettingsProvider
                     }
                     catch (Exception)
                     {
-
                     }
+                    if (xmlDocument?.SelectSingleNode(rootNodeName) != null)
+                    {
+                        return xmlDocument;
+                    }
+                    xmlDocument = GetBlankXmlDocument();
                 }
                 return xmlDocument;
             }
@@ -80,7 +84,6 @@ namespace TestCustomSettingsProvider
             }
             set
             {
-
             }
         }
 
@@ -92,33 +95,33 @@ namespace TestCustomSettingsProvider
             }
         }
 
-        public override void Initialize(string name, NameValueCollection config)
+        public override void Initialize(string name, NameValueCollection nameValueCollection)
         {
-            base.Initialize(Name, config);
+            base.Initialize(Name, nameValueCollection);
         }
 
-        public override void SetPropertyValues(SettingsContext settingsContext, SettingsPropertyValueCollection settingsPropertyValueCollection)
+        public override void SetPropertyValues(SettingsContext aettingsContext, SettingsPropertyValueCollection settingsPropertyValueCollection)
         {
-            foreach(SettingsPropertyValue settingsPropertyValue in settingsPropertyValueCollection)
+            foreach (SettingsPropertyValue settingsPropertyValue in settingsPropertyValueCollection)
             {
                 SetValue(settingsPropertyValue);
             }
             try
             {
-                XmlSettings.Save(FilePath);
+                SettingsDocument.Save(FilePath);
             }
             catch (Exception)
             {
-                //Do nothing
+
             }
         }
 
         public override SettingsPropertyValueCollection GetPropertyValues(SettingsContext settingsContext, SettingsPropertyCollection settingsPropertyCollection)
         {
             SettingsPropertyValueCollection settingsPropertyValueCollection = new();
-            foreach(SettingsProperty settingsProperty in settingsPropertyCollection)
+            foreach (SettingsProperty settingsProperty in settingsPropertyCollection)
             {
-                settingsPropertyValueCollection.Add(new(settingsProperty)
+                settingsPropertyValueCollection.Add(new SettingsPropertyValue(settingsProperty)
                 {
                     SerializedValue = GetValue(settingsProperty)
                 });
@@ -129,37 +132,38 @@ namespace TestCustomSettingsProvider
         private void SetValue(SettingsPropertyValue settingsPropertyValue)
         {
             XmlNode targetNode = IsGlobal(settingsPropertyValue.Property) ? GlobalSettingsNode : LocalSettingsNode;
-            XmlNode settingsNode = targetNode.SelectSingleNode(string.Format("setting[@name='{0}]", settingsPropertyValue.Name));
-            if (settingsNode != null)
+            XmlNode? settingNode = targetNode.SelectSingleNode(string.Format("Setting[@Name='{0}']", settingsPropertyValue.Name));
+            if (settingNode != null)
             {
-                settingsNode.InnerText = settingsPropertyValue.SerializedValue.ToString();
+                settingNode.InnerText = settingsPropertyValue.SerializedValue.ToString()!;
             }
             else
             {
-                settingsNode = XmlSettings.CreateElement("setting");
-                XmlAttribute xmlAttribute = XmlSettings.CreateAttribute("name");
-                settingsNode.Attributes.Append(xmlAttribute);
-                settingsNode.InnerText = settingsPropertyValue.SerializedValue.ToString();
-                targetNode.AppendChild(settingsNode);
+                settingNode = SettingsDocument.CreateElement("Setting");
+                XmlAttribute nameAttribute = SettingsDocument.CreateAttribute("Name");
+                nameAttribute.Value = settingsPropertyValue.Name;
+                settingNode.Attributes!.Append(nameAttribute);
+                settingNode.InnerText = settingsPropertyValue.SerializedValue.ToString()!;
+                targetNode.AppendChild(settingNode);
             }
         }
 
-        private string GetValue(SettingsProperty settingsProperty)
+        private string? GetValue(SettingsProperty settingsProperty)
         {
             XmlNode targetNode = IsGlobal(settingsProperty) ? GlobalSettingsNode : LocalSettingsNode;
-            XmlNode settingsNode = targetNode.SelectSingleNode(string.Format("setting[@name='{0}']", settingsProperty.Name));
-            if (settingsNode != null)
+            XmlNode? settingNode = targetNode.SelectSingleNode(string.Format("Setting[@Name='{0}']", settingsProperty.Name));
+            if (settingNode == null)
             {
                 return settingsProperty.DefaultValue != null ? settingsProperty.DefaultValue.ToString() : string.Empty;
             }
-            return settingsNode.InnerText;
+            return settingNode.InnerText;
         }
 
-        private bool IsGlobal(SettingsProperty settingsProperty)
+        private static bool IsGlobal(SettingsProperty settingsProperty)
         {
-            foreach(DictionaryEntry dictionaryEntry in settingsProperty.Attributes)
+            foreach (DictionaryEntry dictionaryEntry in settingsProperty.Attributes)
             {
-                if(dictionaryEntry.Value as Attribute is SettingsManageabilityAttribute)
+                if (dictionaryEntry.Value as Attribute is SettingsManageabilityAttribute)
                 {
                     return true;
                 }
@@ -169,25 +173,33 @@ namespace TestCustomSettingsProvider
 
         private XmlNode GetSettingsNode(string name)
         {
-            XmlNode settingsNode = RootNode.SelectSingleNode(name);
+            XmlNode? settingsNode = RootNode.SelectSingleNode(name);
             if (settingsNode == null)
             {
-                settingsNode = XmlSettings.CreateElement(name);
+                settingsNode = SettingsDocument.CreateElement(name);
                 RootNode.AppendChild(settingsNode);
             }
             return settingsNode;
         }
 
-        public SettingsPropertyValue GetPreviousVersion(SettingsContext settingsContext, SettingsProperty settingsProperty)
+        public static XmlDocument GetBlankXmlDocument()
         {
-            return new(settingsProperty);
+            XmlDocument blankXmlDocument = new();
+            blankXmlDocument.AppendChild(blankXmlDocument.CreateXmlDeclaration("1.0", "utf-8", string.Empty));
+            blankXmlDocument.AppendChild(blankXmlDocument.CreateElement(rootNodeName));
+            return blankXmlDocument;
         }
 
         public void Reset(SettingsContext settingsContext)
         {
             LocalSettingsNode.RemoveAll();
             GlobalSettingsNode.RemoveAll();
-            XmlSettings.Save(FilePath);
+            xmlDocument!.Save(FilePath);
+        }
+
+        public SettingsPropertyValue GetPreviousVersion(SettingsContext settingsContext, SettingsProperty settingsProperty)
+        {
+            return new SettingsPropertyValue(settingsProperty);
         }
 
         public void Upgrade(SettingsContext settingsContext, SettingsPropertyCollection settingsPropertyCollection)
