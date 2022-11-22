@@ -8,5 +8,28 @@
     <Setting Name="WindowSize" Provider="CustomSettingsProvider" Roaming="true" Type="System.Drawing.Size" Scope="User">
       <Value Profile="(Default)">1000, 700</Value>
     </Setting>
+    <Setting Name="DKBranches" Provider="CustomSettingsProvider" Roaming="true" Type="System.Collections.Generic.List&lt;Branch&gt;" Scope="User">
+      <Value Profile="(Default)">&lt;?xml version="1.0" encoding="utf-16"?&gt;
+&lt;ArrayOfBranch xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt;
+  &lt;Branch&gt;
+    &lt;ID&gt;041&lt;/ID&gt;
+    &lt;Name&gt;EUROPART Danmark A/S&lt;/Name&gt;
+    &lt;StreetName&gt;Kokmose&lt;/StreetName&gt;
+    &lt;BuildingNumber&gt;14&lt;/BuildingNumber&gt;
+  &lt;/Branch&gt;
+  &lt;Branch&gt;
+    &lt;ID&gt;043&lt;/ID&gt;
+    &lt;Name&gt;EUROPART Brabrand A/S&lt;/Name&gt;
+    &lt;StreetName&gt;Dalgårdsvej&lt;/StreetName&gt;
+    &lt;BuildingNumber&gt;4&lt;/BuildingNumber&gt;
+  &lt;/Branch&gt;
+  &lt;Branch&gt;
+    &lt;ID&gt;045&lt;/ID&gt;
+    &lt;Name&gt;EUROPART Aalborg A/S&lt;/Name&gt;
+    &lt;StreetName&gt;Minralvej&lt;/StreetName&gt;
+    &lt;BuildingNumber&gt;31&lt;/BuildingNumber&gt;
+  &lt;/Branch&gt;
+&lt;/ArrayOfBranch&gt;</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

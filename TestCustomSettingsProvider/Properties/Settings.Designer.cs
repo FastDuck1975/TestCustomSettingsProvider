@@ -50,5 +50,39 @@ namespace TestCustomSettingsProvider.Properties {
                 this["WindowSize"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Configuration.SettingsProviderAttribute(typeof(CustomSettingsProvider))]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute(@"<?xml version=""1.0"" encoding=""utf-16""?>
+<ArrayOfBranch xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xmlns:xsd=""http://www.w3.org/2001/XMLSchema"">
+  <Branch>
+    <ID>041</ID>
+    <Name>EUROPART Danmark A/S</Name>
+    <StreetName>Kokmose</StreetName>
+    <BuildingNumber>14</BuildingNumber>
+  </Branch>
+  <Branch>
+    <ID>043</ID>
+    <Name>EUROPART Brabrand A/S</Name>
+    <StreetName>Dalgårdsvej</StreetName>
+    <BuildingNumber>4</BuildingNumber>
+  </Branch>
+  <Branch>
+    <ID>045</ID>
+    <Name>EUROPART Aalborg A/S</Name>
+    <StreetName>Minralvej</StreetName>
+    <BuildingNumber>31</BuildingNumber>
+  </Branch>
+</ArrayOfBranch>")]
+        [global::System.Configuration.SettingsManageabilityAttribute(global::System.Configuration.SettingsManageability.Roaming)]
+        public global::System.Collections.Generic.List<Branch> DKBranches {
+            get {
+                return ((global::System.Collections.Generic.List<Branch>)(this["DKBranches"]));
+            }
+            set {
+                this["DKBranches"] = value;
+            }
+        }
     }
 }

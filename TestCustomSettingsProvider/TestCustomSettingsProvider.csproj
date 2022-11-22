@@ -9,11 +9,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Update="Properties\BranchInfo.Designer.cs">
-      <DesignTimeSharedInput>True</DesignTimeSharedInput>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>BranchInfo.settings</DependentUpon>
-    </Compile>
     <Compile Update="Properties\Settings.Designer.cs">
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <AutoGen>True</AutoGen>
@@ -22,10 +17,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="Properties\BranchInfo.settings">
-      <Generator>SettingsSingleFileGenerator</Generator>
-      <LastGenOutput>BranchInfo.Designer.cs</LastGenOutput>
-    </None>
     <None Update="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>

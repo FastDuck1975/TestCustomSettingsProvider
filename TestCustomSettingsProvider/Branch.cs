@@ -1,4 +1,6 @@
-﻿namespace TestCustomSettingsProvider
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace TestCustomSettingsProvider
 {
     [Serializable]
     public class Branch : IComparer<Branch>
@@ -8,7 +10,7 @@
         {
             ID = id;
         }
-        public string ID { get; set; }
+        public string? ID { get; set; }
         public string? Name { get; set; }
         public string? StreetName { get; set; }
         public string? BuildingNumber { get; set; }
@@ -29,7 +31,7 @@
             }
             else
             {
-                return x.ID.CompareTo(y.ID);
+                return x.ID!.CompareTo(y.ID);
             }
         }
     }

@@ -26,7 +26,7 @@ namespace TestCustomSettingsProvider
                 else
                 {
                     FileInfo fi = new(Application.ExecutablePath);
-                    return fi.Name.Substring(0, fi.Name.Length - fi.Extension.Length);
+                    return fi.Name[..^fi.Extension.Length];
                 }
             }
             set
@@ -35,13 +35,13 @@ namespace TestCustomSettingsProvider
             }
         }
 
-        public override string Name
+/*        public override string Name
         {
             get
             {
                 return "CustomSettingsProvider";
             }
-        }
+        } */
 
         public static string GetAppSettingsPath()
         {
